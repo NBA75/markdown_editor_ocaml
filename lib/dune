@@ -1,0 +1,5 @@
+; Bibliothèque métier pure : aucun effet réseau, aucune dépendance externe.
+; Volontairement indépendante de Dream pour rester testable seule.
+(library
+ (name markdown_editor)
+ (libraries unix))

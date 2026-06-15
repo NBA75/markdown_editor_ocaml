@@ -1,0 +1,17 @@
+# Artefacts de compilation dune
+_build/
+*.install
+*.merlin
+
+# Fichiers générés / temporaires
+*.pdf
+*.html.bak
+
+# Éditeurs / OS
+.vscode/
+.idea/
+*~
+.DS_Store
+
+# Note : les fichiers de configuration de l'application sont créés dans
+# ~/.config/markdown_editor/ (hors du dépôt), rien à ignorer ici pour eux.

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Fiche OCaml — A4</title>
+<style>
+  @page { size: A4 portrait; margin: 12mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: #1b1b1f; font-size: 10.2px; line-height: 1.42; background: #fff;
+  }
+  .sheet {
+    width: 186mm; margin: 0 auto; padding: 4mm 0;
+  }
+  h1 { font-size: 19px; margin: 0 0 1mm; color: #b5530a; letter-spacing: .2px; }
+  .sub { color: #555; margin: 0 0 3mm; font-size: 10px; }
+  h2 {
+    font-size: 11.5px; margin: 0 0 1.4mm; color: #b5530a;
+    border-bottom: 1.4px solid #f0c89a; padding-bottom: .6mm; text-transform: uppercase; letter-spacing: .4px;
+  }
+  .cols { column-count: 2; column-gap: 7mm; }
+  .card {
+    break-inside: avoid; background: #fafafa; border: 1px solid #e7e7ea;
+    border-radius: 5px; padding: 2.4mm 2.8mm; margin-bottom: 3mm;
+  }
+  code, .mono { font-family: "Consolas", ui-monospace, monospace; font-size: 9.4px; }
+  pre {
+    background: #2b2b30; color: #eee; border-radius: 4px; padding: 2mm 2.4mm;
+    margin: 1.2mm 0 0; white-space: pre-wrap; font-size: 9px; line-height: 1.38;
+  }
+  pre .k { color: #ff9e64; } pre .t { color: #7dcfff; } pre .c { color: #9aa0a6; }
+  ul { margin: .8mm 0 0; padding-left: 4.2mm; } li { margin-bottom: .6mm; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1mm; font-size: 8.8px; }
+  th, td { border: 1px solid #e0e0e3; padding: .8mm 1.1mm; text-align: left; vertical-align: top; }
+  th { background: #f4ede4; color: #7a4a16; }
+  .hl { color: #b5530a; font-weight: 600; }
+  .diagram {
+    font-family: "Consolas", ui-monospace, monospace; font-size: 8.2px; line-height: 1.25;
+    white-space: pre; background: #fbfbfb; border: 1px dashed #d8b88f; border-radius: 4px;
+    padding: 2mm; overflow: hidden;
+  }
+  .pill { display: inline-block; background: #f0c89a; color: #5b340c; border-radius: 3px; padding: 0 1.2mm; font-weight: 600; }
+  .foot { margin-top: 2mm; color: #888; font-size: 8.4px; text-align: center; }
+  @media screen { body { background: #ececec; } .sheet { background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.15); margin: 8mm auto; padding: 12mm; width: 210mm; min-height: 297mm; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <h1>OCaml — fiche de référence étudiant</h1>
+  <p class="sub">Langage <span class="hl">compilé</span>, à <span class="hl">typage statique inféré</span>, <span class="hl">fonctionnel</span> (+ impératif &amp; objet). Illustré par un éditeur Markdown web.</p>
+
+  <h2>Architecture : point d'entrée + bibliothèque</h2>
+  <div class="diagram">  NAVIGATEUR  ──HTTP──►  bin/main.ml  ──appelle──►  lib/ (logique pure)
+   (textarea)            (point d'entrée :          Markdown_parser ─► Markdown_renderer
+   (aperçu)  ◄───────     serveur + routes)         Document · File_service · Config
+                          n'a PAS la logique         Recent_files · Text_search · Editor_state
+                          métier, il ORCHESTRE       chaque module = .mli (contrat) + .ml (code)
+                                                              ▲
+                                                       test/ : 53 tests (Alcotest)</div>
+
+  <div class="cols">
+
+    <div class="card">
+      <h2>Flux de données (pur)</h2>
+      <div class="mono">"# Titre"</div>
+      <div>&nbsp;&nbsp;▼ <span class="mono">Markdown_parser.parse</span></div>
+      <div class="mono">[ Heading (1, [Text "Titre"]) ]&nbsp;&nbsp;<span style="color:#888">(AST typé)</span></div>
+      <div>&nbsp;&nbsp;▼ <span class="mono">Markdown_renderer.render</span></div>
+      <div class="mono">"&lt;h1&gt;Titre&lt;/h1&gt;"</div>
+      <ul>
+        <li>2 fonctions <span class="hl">pures</span> : mêmes entrées → mêmes sorties.</li>
+        <li>Effets de bord (fichiers, réseau) <span class="hl">confinés</span> aux bords.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Types algébriques</h2>
+<pre><span class="c">(* variant : « l'un de ces cas »*)</span>
+<span class="k">type</span> inline =
+  | Text <span class="k">of</span> <span class="t">string</span>
+  | Bold <span class="k">of</span> inline <span class="t">list</span>
+  | Link <span class="k">of</span> { text:inline <span class="t">list</span>;
+            href:<span class="t">string</span> }
+
+<span class="c">(* record : champs nommés *)</span>
+<span class="k">type</span> t = { path:<span class="t">string option</span>;
+            content:<span class="t">string</span> }</pre>
+    </div>
+
+    <div class="card">
+      <h2>Filtrage de motifs</h2>
+<pre><span class="k">let rec</span> render = <span class="k">function</span>
+  | Text s   -> escape_html s
+  | Bold xs  -> <span class="t">"&lt;strong&gt;"</span> ^ …
+  | Italic xs-> <span class="t">"&lt;em&gt;"</span> ^ …</pre>
+      <ul><li>Le compilateur <span class="hl">vérifie qu'aucun cas n'est oublié</span>.</li></ul>
+    </div>
+
+    <div class="card">
+      <h2>Erreurs sans <span class="mono">null</span></h2>
+<pre><span class="k">val</span> read_file :
+  <span class="t">string</span> -> (<span class="t">string</span>, error) <span class="t">result</span>
+
+<span class="k">match</span> read_file p <span class="k">with</span>
+| Ok contenu -> …
+| Error e    -> <span class="c">(* message clair *)</span></pre>
+      <ul>
+        <li><span class="mono">option</span> = <span class="mono">Some v</span> | <span class="mono">None</span> (remplace <span class="mono">null</span>).</li>
+        <li><span class="mono">result</span> = <span class="mono">Ok</span> | <span class="mono">Error</span> : l'échec est dans le type.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Immuabilité &amp; entrée</h2>
+<pre><span class="c">(* on RECRÉE, on ne modifie pas *)</span>
+<span class="k">let</span> update c t = { t <span class="k">with</span> content = c }
+
+<span class="c">(* point d'entrée du programme *)</span>
+<span class="k">let</span> () = Dream.run … @@ router […]</pre>
+      <ul><li><span class="mono">let () = …</span> : type <span class="mono">unit</span>, le démarrage.</li>
+      <li><span class="mono">|&gt;</span> / <span class="mono">@@</span> : enchaîner les fonctions.</li></ul>
+    </div>
+
+    <div class="card">
+      <h2>Mémo express</h2>
+      <ul>
+        <li><span class="pill">.mli</span> contrat · <span class="pill">.ml</span> code</li>
+        <li><b>inférence</b> : peu d'annotations, types déduits</li>
+        <li><b>dune</b> : build/test · <b>opam</b> : paquets</li>
+        <li><b>AST</b> : arbre typé d'un texte/programme</li>
+        <li><b>GC</b> : mémoire libérée automatiquement</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <h2 style="margin-top:1mm">Positionnement face aux autres langages</h2>
+  <table>
+    <tr><th>Critère</th><th>OCaml</th><th>Python</th><th>Java</th><th>JS</th><th>Haskell</th><th>Rust</th><th>C</th></tr>
+    <tr><td>Typage</td><td class="hl">statique inféré</td><td>dynamique</td><td>statique verbeux</td><td>dynamique</td><td>statique inféré</td><td>statique inféré</td><td>statique faible</td></tr>
+    <tr><td>Paradigme</td><td>fonctionnel +impér.+objet</td><td>multi</td><td>objet</td><td>multi</td><td>fonctionnel pur</td><td>multi</td><td>impératif</td></tr>
+    <tr><td>Vitesse</td><td>élevée (natif)</td><td>faible</td><td>élevée (JVM)</td><td>moyenne</td><td>élevée</td><td class="hl">très élevée</td><td class="hl">maximale</td></tr>
+    <tr><td>Mémoire</td><td>GC auto</td><td>GC</td><td>GC</td><td>GC</td><td>GC</td><td>ownership (sans GC)</td><td>manuelle</td></tr>
+    <tr><td>Erreurs</td><td class="hl">option/result</td><td>exceptions</td><td>null+except.</td><td>undefined</td><td>Maybe/Either</td><td>Option/Result</td><td>pointeurs nus</td></tr>
+    <tr><td>Apprentissage</td><td>moyen</td><td class="hl">facile</td><td>moyen</td><td>facile</td><td>difficile</td><td>difficile</td><td>moyen-difficile</td></tr>
+  </table>
+  <p style="margin:1.4mm 0 0;font-size:9px">
+    <b>Repères :</b> vs <b>Python</b> → erreurs à la compilation + bien plus rapide ·
+    vs <b>Java</b> → plus concis, pas de <span class="mono">null</span> ·
+    vs <b>Haskell</b> → fonctionnel mais pragmatique (effets permis, évaluation stricte) ·
+    vs <b>Rust</b> → cousins (1ᵉʳ compilateur Rust écrit en OCaml), Rust gère la mémoire sans GC ·
+    vs <b>C</b> → sûreté mémoire + GC. <b>Usages phares :</b> compilateurs, analyse statique (Flow, Hack), Coq, finance (Jane Street).
+  </p>
+
+  <p class="foot">Fiche pédagogique — imprimer en A4 (ou « Enregistrer en PDF »). Projet : éditeur Markdown en OCaml.</p>
+
+</div>
+</body>
+</html>

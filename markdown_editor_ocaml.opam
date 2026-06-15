@@ -1,0 +1,24 @@
+opam-version: "2.0"
+synopsis: "Éditeur Markdown web local écrit en OCaml (projet pédagogique)"
+description: """
+Application d'édition de fichiers Markdown servie localement par un backend
+OCaml (Dream). Parser et renderer Markdown écrits maison. Projet conçu comme
+support d'apprentissage d'OCaml (modules .ml/.mli, types algébriques, Result,
+tests Alcotest).
+"""
+maintainer: "The markdown_editor_ocaml contributors"
+authors: "The markdown_editor_ocaml contributors"
+license: "MIT"
+depends: [
+  "ocaml" {>= "4.13"}
+  "dune" {>= "3.0"}
+  "dream"
+  "lwt"
+  "alcotest" {with-test}
+]
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+]
+# Dépendance système (Dream) : libev-dev. Sous Debian/Ubuntu :
+#   sudo apt-get install -y libev-dev

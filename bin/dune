@@ -1,0 +1,5 @@
+; Serveur web local (Dream). Seul composant qui dépend du réseau ;
+; il s'appuie sur la bibliothèque métier pure « markdown_editor ».
+(executable
+ (name main)
+ (libraries markdown_editor dream lwt lwt.unix))
