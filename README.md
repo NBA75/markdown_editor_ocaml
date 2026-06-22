@@ -6,6 +6,8 @@ Le texte s'édite à gauche, l'aperçu HTML s'affiche en direct à droite ; les 
 sont lus et écrits sur votre disque, et la prévisualisation se fait via un moteur
 Markdown → HTML écrit maison (aucune bibliothèque Markdown externe).
 
+Entièrement genéré avec Claude Code
+
 > Aucune donnée ne quitte votre machine : le serveur écoute uniquement sur
 > `127.0.0.1` (localhost).
 
